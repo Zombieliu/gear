@@ -4129,6 +4129,7 @@ dependencies = [
  "log",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-timestamp",
  "parity-scale-codec",
  "parity-wasm 0.42.2",
  "primitive-types",

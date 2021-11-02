@@ -116,6 +116,17 @@ impl pallet_authorship::Config for Test {
     type EventHandler = ();
 }
 
+parameter_types! {
+    pub const MinimumPeriod: u64 = 500;
+}
+
+impl pallet_timestamp::Config for Test {
+    type Moment = u64;
+    type OnTimestampSet = ();
+    type MinimumPeriod = MinimumPeriod;
+    type WeightInfo = ();
+}
+
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let mut t = system::GenesisConfig::default()

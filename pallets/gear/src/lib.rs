@@ -49,7 +49,7 @@ pub mod pallet {
     use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 
     #[pallet::config]
-    pub trait Config: frame_system::Config + pallet_authorship::Config {
+    pub trait Config: frame_system::Config + pallet_authorship::Config + pallet_timestamp::Config {
         /// Because this pallet emits events, it depends on the runtime's definition of an event.
         type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
@@ -283,6 +283,7 @@ pub mod pallet {
             let mut weight = Self::gas_allowance() as Weight;
             let mut total_handled = 0u32;
             let block_height = <frame_system::Pallet<T>>::block_number().unique_saturated_into();
+            let _block_timestamp = <pallet_timestamp::Pallet<T>>::get();
 
             for message in messages {
                 match message {
@@ -625,7 +626,7 @@ pub mod pallet {
         /// Emits the following events:
         /// - `InitMessageEnqueued(MessageInfo)` when init message is placed in the queue.
         #[pallet::weight(
-            T::WeightInfo::submit_program(code.len() as u32, init_payload.len() as u32)
+            <T as pallet::Config>::WeightInfo::submit_program(code.len() as u32, init_payload.len() as u32)
         )]
         pub fn submit_program(
             origin: OriginFor<T>,
@@ -699,7 +700,7 @@ pub mod pallet {
         /// Emits the following events:
         /// - `DispatchMessageEnqueued(MessageInfo)` when dispatch message is placed in the queue.
         #[frame_support::transactional]
-        #[pallet::weight(T::WeightInfo::send_message(payload.len() as u32))]
+        #[pallet::weight(<T as pallet::Config>::WeightInfo::send_message(payload.len() as u32))]
         pub fn send_message(
             origin: OriginFor<T>,
             destination: H256,
@@ -767,7 +768,7 @@ pub mod pallet {
         ///
         /// - `DispatchMessageEnqueued(H256)` when dispatch message is placed in the queue.
         #[frame_support::transactional]
-        #[pallet::weight(T::WeightInfo::send_reply(payload.len() as u32))]
+        #[pallet::weight(<T as pallet::Config>::WeightInfo::send_reply(payload.len() as u32))]
         pub fn send_reply(
             origin: OriginFor<T>,
             reply_to_id: H256,
@@ -864,7 +865,7 @@ pub mod pallet {
         ///
         /// Emits the following events:
         /// - `ProgramRemoved(id)` when succesful.
-        #[pallet::weight(T::WeightInfo::remove_stale_program())]
+        #[pallet::weight(<T as pallet::Config>::WeightInfo::remove_stale_program())]
         pub fn remove_stale_program(
             origin: OriginFor<T>,
             program_id: H256,
