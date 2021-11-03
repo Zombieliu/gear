@@ -40,6 +40,7 @@ construct_runtime!(
         Gear: pallet_gear::{Pallet, Call, Storage, Event<T>},
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         Authorship: pallet_authorship::{Pallet, Storage},
+        Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
     }
 );
 
