@@ -283,7 +283,7 @@ pub mod pallet {
             let mut weight = Self::gas_allowance() as Weight;
             let mut total_handled = 0u32;
             let block_height = <frame_system::Pallet<T>>::block_number().unique_saturated_into();
-            let _block_timestamp = <pallet_timestamp::Pallet<T>>::get();
+            let _block_timestamp: u64 = <pallet_timestamp::Pallet<T>>::get().unique_saturated_into();
 
             for message in messages {
                 match message {
