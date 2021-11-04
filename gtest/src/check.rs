@@ -136,32 +136,6 @@ fn check_messages(
         let mut expected_messages: Vec<sample::Message> = expected_messages.into();
         let mut messages: Vec<Message> = messages.into();
 
-        let proc = |v: &(std::string::String, u64),
-                    payload: &mut sample::PayloadVariant,
-                    meta_type: MetaType,
-                    msg: &mut gear_core::message::Message| {
-            let path: String = v.0.replace(".wasm", ".meta.wasm");
-
-            let json = MetaData::Json(String::from_utf8(payload.to_bytes()).unwrap());
-
-            let bytes = json
-                .convert(&path, &meta_type)
-                .expect("Unable to get bytes");
-
-            *payload = PayloadVariant::Utf8(
-                bytes
-                    .convert(&path, &meta_type)
-                    .expect("Unable to get json")
-                    .into_json(),
-            );
-
-            msg.payload = MetaData::CodecBytes(msg.payload.clone().into_raw())
-                .convert(&path, &meta_type)
-                .expect("Unable to get bytes")
-                .into_bytes()
-                .into();
-        };
-
         expected_messages
             .iter_mut()
             .zip(messages.iter_mut())
@@ -174,28 +148,43 @@ fn check_messages(
                     .as_mut()
                     .map(|payload| match payload {
                         PayloadVariant::Custom(_) => {
-                            if let Some(v) = progs_n_paths
-                                .iter()
-                                .find(|v| ProgramId::from(v.1) == msg.source())
-                            {
-                                let meta_type = if init {
-                                    MetaType::InitOutput
-                                } else {
-                                    MetaType::HandleOutput
-                                };
-
-                                proc(v, payload, meta_type, msg);
-                            } else if let Some(v) = progs_n_paths
-                                .iter()
-                                .find(|v| ProgramId::from(v.1) == msg.dest)
-                            {
-                                let meta_type = if init {
+                            if let Some(v) = progs_n_paths.iter().find(|v| {
+                                let id = ProgramId::from(v.1);
+                                id == msg.source() || id == msg.dest
+                            }) {
+                                let meta_type = if ProgramId::from(v.1) == msg.source() {
+                                    if init {
+                                        MetaType::InitOutput
+                                    } else {
+                                        MetaType::HandleOutput
+                                    }
+                                } else if init {
                                     MetaType::InitInput
                                 } else {
                                     MetaType::HandleInput
                                 };
 
-                                proc(v, payload, meta_type, msg);
+                                let path: String = v.0.replace(".wasm", ".meta.wasm");
+
+                                let json =
+                                    MetaData::Json(String::from_utf8(payload.to_bytes()).unwrap());
+
+                                let bytes = json
+                                    .convert(&path, &meta_type)
+                                    .expect("Unable to get bytes");
+
+                                *payload = PayloadVariant::Utf8(
+                                    bytes
+                                        .convert(&path, &meta_type)
+                                        .expect("Unable to get json")
+                                        .into_json(),
+                                );
+
+                                msg.payload = MetaData::CodecBytes(msg.payload.clone().into_raw())
+                                    .convert(&path, &meta_type)
+                                    .expect("Unable to get bytes")
+                                    .into_bytes()
+                                    .into();
                             };
 
                             !payload.equals(msg.payload.as_ref())
