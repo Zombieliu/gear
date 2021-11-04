@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["exec","Sys calls related to the program execution flow."],["msg","Messaging API for GEAR programs."]],"struct":[["MessageHandle","Message handle."],["MessageId","Message identifier."],["ProgramId","Program identifier."]]});
